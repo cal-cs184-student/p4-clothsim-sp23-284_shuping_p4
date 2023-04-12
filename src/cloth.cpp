@@ -58,9 +58,9 @@ void Cloth::buildGrid() {
 
     // set mass pinned
     for (int i = 0; i < pinned.size(); i++) {
-        int y = pinned[i][0];
-        int x = pinned[i][1];
-        PointMass* pos = &point_masses[y * num_width_points + x];
+        int j = pinned[i][0];
+        int k = pinned[i][1];
+        PointMass* pos = &point_masses[k * num_width_points + j];
         pos->pinned = true;
     }
 
