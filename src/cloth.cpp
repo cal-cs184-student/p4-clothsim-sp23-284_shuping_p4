@@ -165,7 +165,11 @@ void Cloth::simulate(double frames_per_sec, double simulation_steps, ClothParame
   }
 
   // TODO (Part 4): Handle self-collisions.
-
+  build_spatial_map();
+  for (int i = 0; i < point_masses.size(); i++) {
+      PointMass* pm = &point_masses[i];
+      self_collide(*pm, simulation_steps);
+  }
 
   // TODO (Part 3): Handle collisions with other primitives.
   for (int i = 0; i < (*collision_objects).size(); i++) {
@@ -211,18 +215,49 @@ void Cloth::build_spatial_map() {
   map.clear();
 
   // TODO (Part 4): Build a spatial map out of all of the point masses.
-
+  for (int i = 0; i < point_masses.size(); i++) {
+      PointMass* pm = &point_masses[i];
+      float key = hash_position(pm->position);
+      if (map.find(key) == map.end()) {
+          map[key] = new vector<PointMass*>();
+      }
+      map[key]->push_back(pm);
+  }
 }
 
 void Cloth::self_collide(PointMass &pm, double simulation_steps) {
   // TODO (Part 4): Handle self-collision for a given point mass.
+    float key = hash_position(pm.position);
 
+    int count = 0;
+    Vector3D correction(0);
+    for (int i = 0; i < map[key]->size(); i++) {
+        PointMass* candidate = (*map[key])[i];
+        if (candidate == &pm) {
+            continue;
+        }
+        if ((pm.position - candidate->position).norm() < 2 * thickness) {
+            count++;
+            correction += (candidate->position - pm.position) - 2 * thickness * (candidate->position - pm.position).unit();
+        }
+    }
+
+    if (count > 0) {
+        correction = correction / (count * simulation_steps);
+        pm.position += correction;
+    }
 }
 
 float Cloth::hash_position(Vector3D pos) {
   // TODO (Part 4): Hash a 3D position into a unique float identifier that represents membership in some 3D box volume.
+    float w = 3 * width / (float)num_width_points;
+    float h = 3 * height / (float)num_height_points;
+    float t = max(w, h);
 
-  return 0.f; 
+    float bx = pos.x - fmod(pos.x, w);
+    float by = pos.y - fmod(pos.y, h);
+    float bz = pos.z - fmod(pos.z, t);
+    return pow(bx, 3) + pow(by, 2) + bz;
 }
 
 ///////////////////////////////////////////////////////
