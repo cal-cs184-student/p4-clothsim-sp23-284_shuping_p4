@@ -47,7 +47,7 @@ void Cloth::buildGrid() {
             }
             else {
                 y = i * dy;
-                z = (rand() / RAND_MAX - 0.5) / 500.0;
+                z = (rand() / (double)RAND_MAX - 0.5) / 500.0;
             }
             // store in row major
             Vector3D pos(x, y, z);
